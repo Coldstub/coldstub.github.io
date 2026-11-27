@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>coldstub</title>
+<meta name="description" content="coldstub / 冬野 律 — reverse engineering, systems programming, CTF.">
+<meta name="theme-color" content="#050505">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="coldstub">
+<meta property="og:title" content="coldstub">
+<meta property="og:description" content="reverse engineering · systems programming · CTF">
+<meta property="og:url" content="https://coldstub.github.io/">
+<meta property="og:image" content="https://coldstub.github.io/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="coldstub@lab:~$ whoami — 冬野 律 / Fuyuno Ritsu">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23050505'/%3E%3Crect x='3' y='11' width='7' height='2' fill='%23e8907a'/%3E%3C/svg%3E">
+<script>
+  // Enable the typing animation only when motion is allowed.
+  // Failsafe: if the main script never runs, reveal everything after 4s.
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    document.documentElement.classList.add('js');
+    window.__failsafe = setTimeout(function () {
+      document.documentElement.classList.remove('js');
+    }, 4000);
+  }
+</script>
+<style>
+  /* tokens — from Coldstub-Blog Style_Guide_v2 (black-terminal / salmon-blue) */
+  :root {
+    color-scheme: dark;
+
+    --bg: #050505;
+    --fg: #d6d6d6;
+    --muted: #777777;
+    --line: rgba(255, 255, 255, 0.08);   /* --border-subtle */
+    --accent: #e8907a;                   /* --accent-title: prompt */
+    --link: #5b8dd9;                     /* --accent-link: bracket links */
+    --link-active: #f0a08d;              /* --accent-soft */
+    --ghost-line: rgba(232, 144, 122, 0.06);
+
+    --font: "JetBrains Mono", "IBM Plex Mono", "Fira Code", "Cascadia Code",
+            "Sarasa Mono SC", "Maple Mono", ui-monospace, monospace;
+    --pad-x: clamp(1.25rem, 4vw, 3.75rem);
+    --pad-y: clamp(2rem, 5vw, 4rem);
+    --bar-h: 1.9rem;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html, body { margin: 0; background: var(--bg); color: var(--fg); }
+
+  body {
+    min-height: 100svh;
+    padding: var(--pad-y) var(--pad-x) calc(var(--bar-h) + var(--pad-y));
+    font: 16px/1.7 var(--font);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* background layer: GhostBg geometry from the blog */
+  .ghost-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+    color: var(--ghost-line);
+  }
+  .ghost-bg svg { display: block; width: 100%; height: 100%; }
+
+  .term { position: relative; z-index: 1; max-width: 46rem; }
+  .term > *, .history > * { margin: 0; }
+  .term > .out, .history > .out { margin-bottom: 1.2em; }
+
+  .ps { color: var(--accent); }
+  .ps .path { color: var(--muted); }
+  .muted { color: var(--muted); }
+  .err { color: var(--link-active); }
+
+  /* links: one per line, bracket text is the visual language */
+  .links { list-style: none; padding: 0; }
+  .links li {
+    display: grid;
+    grid-template-columns: 2ch 13ch 1fr;
+    column-gap: 1ch;
+  }
+  .links .k, .links .desc { color: var(--muted); }
+
+  a { color: var(--link); text-decoration: none; }
+  a:visited { color: var(--link); }
+  a:hover { text-decoration: underline; text-underline-offset: 0.2em; }
+  a:active { color: var(--link-active); }
+  a:focus-visible { outline: 1px dashed var(--link); outline-offset: 2px; }
+
+  /* shell output */
+  .cols {
+    display: grid;
+    grid-template-columns: 16ch 1fr;
+    column-gap: 1ch;
+  }
+  .cols > :nth-child(odd) { color: var(--fg); }
+  .cols > :nth-child(even) { color: var(--muted); }
+  .ls { display: flex; flex-wrap: wrap; column-gap: 2ch; }
+  .echo { white-space: pre-wrap; word-break: break-all; }
+
+  /* hint: keyboard vs touch */
+  .hint-touch { display: none; }
+  @media (hover: none) {
+    .hint-key { display: none; }
+    .hint-touch { display: inline; }
+  }
+
+  /* prompt line: a hidden <input> drives a mirrored line with a block caret */
+  .prompt-line {
+    position: relative;
+    scroll-margin-bottom: calc(var(--bar-h) + 1rem);
+  }
+  .prompt-line .line { white-space: pre-wrap; word-break: break-all; }
+  #sh {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font: inherit;
+    color: transparent;
+    background: transparent;
+    caret-color: transparent;
+    opacity: 0;
+    cursor: text;
+  }
+
+  /* caret */
+  .cursor,
+  .typing::after {
+    background: var(--fg);
+    color: var(--bg);
+    white-space: pre;
+  }
+  .typing::after { content: "\00a0"; }
+  .cursor { animation: blink 1s steps(1) infinite; }
+  .prompt-line:focus-within .cursor { background: var(--accent); }
+  @keyframes blink { 50% { background: transparent; color: var(--fg); } }
+  @media (prefers-reduced-motion: reduce) { .cursor { animation: none; } }
+
+  /* progressive enhancement: hidden only while JS drives the reveal */
+  .js .step { visibility: hidden; }
+  .js .step.on { visibility: visible; }
+
+  /* statusbar */
+  .bar {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    z-index: 2;
+    height: var(--bar-h);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2ch;
+    padding: 0 var(--pad-x);
+    background: var(--bg);
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font: 0.8em/1 var(--font);
+    white-space: nowrap;
+  }
+  .bar .mode.insert { color: var(--fg); }
+
+  @media (max-width: 767px) {
+    .bar .mid { display: none; }
+  }
+  @media (max-width: 479px) {
+    .ghost-bg { display: none; }
+    .bar .r { display: none; }
+    .links li { grid-template-columns: 2ch 1fr; }
+    .links .desc { display: none; }
+    .cols { grid-template-columns: 1fr; }
+    .cols > :nth-child(even) { margin-bottom: 0.4em; }
+  }
+</style>
+</head>
+<body>
+<div class="ghost-bg" aria-hidden="true">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice">
+    <g fill="none" stroke="currentColor" stroke-width="1">
+      <line x1="0" y1="0" x2="1200" y2="800"/>
+      <line x1="0" y1="160" x2="1200" y2="960"/>
+      <line x1="-200" y1="800" x2="1400" y2="0"/>
+      <circle cx="940" cy="180" r="240"/>
+      <circle cx="940" cy="180" r="160"/>
+      <circle cx="940" cy="180" r="80"/>
+      <rect x="80" y="540" width="220" height="220"/>
+      <line x1="0" y1="400" x2="1200" y2="400" stroke-dasharray="4 10"/>
+    </g>
+  </svg>
+</div>
+
+<main class="term">
+  <p class="step"><span class="ps">coldstub@lab<span class="path">:~$</span></span> <span class="cmd">whoami</span></p>
+  <p class="out step" id="whoami">
+    冬野 律 / Fuyuno Ritsu<br>
+    <span class="muted">reverse engineering · systems programming · CTF</span>
+  </p>
+
+  <p class="step"><span class="ps">coldstub@lab<span class="path">:~$</span></span> <span class="cmd">cat links.txt</span></p>
+  <ul class="out links">
+    <!-- TODO: blog href — fill once the blog is deployed -->
+    <li class="step"><span class="k">1</span><a href="#todo-blog" data-key="1" rel="me noopener">[blog]</a><span class="desc">writeups, notes</span></li>
+    <li class="step"><span class="k">2</span><a href="https://github.com/coldstub" data-key="2" rel="me noopener">[github]</a><span class="desc">code</span></li>
+    <li class="step"><span class="k">3</span><a href="https://t.me/ripwned" data-key="3" rel="me noopener">[telegram]</a><span class="desc">channel · ripwned</span></li>
+    <li class="step"><span class="k">4</span><a href="https://soundcloud.com/ripbny" data-key="4" rel="me noopener">[soundcloud]</a><span class="desc">ripbny</span></li>
+    <li class="step"><span class="k">5</span><a href="https://t.me/imwfso" data-key="5" rel="me noopener">[contact]</a><span class="desc">telegram · @imwfso</span></li>
+  </ul>
+
+  <p class="out step muted">
+    <span class="hint-key"># press 1–5 to open · type help</span><span class="hint-touch"># tap a link</span>
+  </p>
+
+  <div class="history" id="history" aria-live="polite"></div>
+
+  <p class="step prompt-line"><span class="ps">coldstub@lab<span class="path">:~$</span></span> <span class="line" aria-hidden="true"><span class="b"></span><span class="cursor"> </span><span class="a"></span></span><input id="sh" type="text" aria-label="shell: type help for commands" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="go" hidden></p>
+</main>
+
+<footer class="bar" aria-hidden="true">
+  <span class="mode">-- NORMAL --</span>
+  <span class="mid">links.txt · utf-8 · unix</span>
+  <span class="r">ln 1, col 1</span>
+</footer>
+
+<script>
+(() => {
+  clearTimeout(window.__failsafe);
+  const root = document.documentElement;
+  const $ = s => document.querySelector(s);
+
+  // links: number keys + names for the shell
+  const keys = new Map();
+  const names = new Map();
+  document.querySelectorAll('a[data-key]').forEach(a => {
+    keys.set(a.dataset.key, a);
+    names.set(a.textContent.replace(/[\[\]]/g, '').toLowerCase(), a);
+  });
+  const go = a => { location.href = a.href; };
+
+  // ---- reveal animation -------------------------------------------------
+  const steps = [...document.querySelectorAll('.step')];
+  const cmds = [...document.querySelectorAll('.cmd')];
+  cmds.forEach(c => { c.dataset.text = c.textContent; });
+  let done = !root.classList.contains('js');   // reduced motion: already visible
+
+  function finish() {
+    if (done) return;
+    done = true;
+    steps.forEach(el => { el.classList.add('on'); el.classList.remove('typing'); });
+    cmds.forEach(c => { c.textContent = c.dataset.text; });
+  }
+
+  if (!done) {
+    const sleep = ms => new Promise(r => setTimeout(r, ms));
+    (async () => {
+      for (const el of steps) {
+        if (done) return;
+        el.classList.add('on');
+        const cmd = el.querySelector('.cmd');
+        if (cmd) {
+          const text = cmd.dataset.text;
+          cmd.textContent = '';
+          el.classList.add('typing');
+          for (const ch of text) {             // for..of = code points, CJK-safe
+            if (done) return;
+            cmd.textContent += ch;
+            await sleep(45 + Math.random() * 45);
+          }
+          el.classList.remove('typing');
+          await sleep(240);
+        } else {
+          await sleep(90);
+        }
+      }
+      done = true;
+    })();
+  }
+
+  // ---- shell ------------------------------------------------------------
+  const input = $('#sh');
+  const line = $('.prompt-line');
+  const before = line.querySelector('.b');
+  const cursor = line.querySelector('.cursor');
+  const after = line.querySelector('.a');
+  const history = $('#history');
+  const mode = $('.bar .mode');
+  const pos = $('.bar .r');
+  const psTpl = $('.step .ps');
+  const past = [];
+  let hi = 0;
+
+  input.hidden = false;
+
+  function render() {
+    const v = input.value;
+    const i = Math.min(input.selectionStart ?? v.length, v.length);
+    before.textContent = v.slice(0, i);
+    cursor.textContent = v[i] ?? ' ';
+    after.textContent = v.slice(i + 1);
+    pos.textContent = `ln ${past.length + 1}, col ${i + 1}`;
+  }
+  function wake() {                            // keep the caret solid while typing
+    cursor.style.animation = 'none';
+    void cursor.offsetWidth;
+    cursor.style.animation = '';
+  }
+
+  const el = (tag, cls, text) => {
+    const n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  };
+  const linkTo = a => {
+    const n = el('a', null, a.textContent);
+    n.href = a.href;
+    n.rel = 'noopener';
+    return n;
+  };
+  function echo(text) {
+    const p = el('p', 'echo');
+    p.append(psTpl.cloneNode(true), ' ', text);
+    history.append(p);
+  }
+  function out(...nodes) {
+    const d = el('div', 'out');
+    d.append(...nodes);
+    history.append(d);
+    return d;
+  }
+
+  const help = [
+    ['help', 'this list'],
+    ['ls', 'list links'],
+    ['open <name|n>', 'open a link · open github, open 2'],
+    ['whoami', 'who is this'],
+    ['clear', 'clear the screen'],
+  ];
+
+  const commands = {
+    help() {
+      const g = el('div', 'cols');
+      help.forEach(([c, d]) => g.append(el('span', null, c), el('span', null, d)));
+      out(g);
+    },
+    ls() {
+      const d = out();
+      d.classList.add('ls');
+      names.forEach(a => d.append(linkTo(a)));
+    },
+    open(arg) {
+      if (!arg) { out(el('span', 'err', 'usage: open <name|n>')); return; }
+      const a = keys.get(arg) || names.get(arg.replace(/[\[\]]/g, '').toLowerCase());
+      if (!a) { out(el('span', 'err', `open: ${arg}: no such link`), el('br'), el('span', 'muted', '# try ls')); return; }
+      if (a.getAttribute('href').startsWith('#')) { out(el('span', 'err', `open: ${arg}: not online yet`)); return; }
+      out(el('span', 'muted', `opening ${a.href} …`));
+      setTimeout(() => go(a), 150);
+    },
+    whoami() { out(...[...$('#whoami').childNodes].map(n => n.cloneNode(true))); },
+    clear() { history.replaceChildren(); },
+  };
+
+  function run(raw) {
+    echo(raw);
+    const text = raw.trim();
+    if (!text) return;
+    past.push(text);
+    const [cmd, ...args] = text.split(/\s+/);
+    const fn = commands[cmd.toLowerCase()];
+    if (fn) fn(args.join(' '));
+    else out(el('span', 'err', `${cmd}: command not found`), el('br'), el('span', 'muted', '# type help'));
+  }
+
+  function complete() {
+    const v = input.value;
+    const m = v.match(/^(\s*open\s+)(\S*)$/i);
+    const pool = m ? [...names.keys()] : Object.keys(commands);
+    const stem = (m ? m[2] : v.trim()).toLowerCase();
+    const hits = pool.filter(p => p.startsWith(stem));
+    if (hits.length === 1) input.value = (m ? m[1] : '') + hits[0] + (m ? '' : ' ');
+    else if (hits.length > 1 && stem) { echo(v); out(el('span', 'muted', hits.join('  '))); }
+  }
+
+  input.addEventListener('keydown', e => {
+    finish();
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      run(input.value);
+      input.value = '';
+      hi = past.length;
+    } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      hi = Math.max(0, Math.min(past.length, hi + (e.key === 'ArrowUp' ? -1 : 1)));
+      input.value = past[hi] ?? '';
+      input.setSelectionRange(input.value.length, input.value.length);
+    } else if (e.key === 'Tab' && input.value.trim()) {
+      e.preventDefault();
+      complete();
+    } else if (e.ctrlKey && e.key === 'c') {
+      if (input.selectionStart !== input.selectionEnd) return;   // allow copy
+      e.preventDefault();
+      echo(input.value + '^C');
+      input.value = '';
+    } else if (e.ctrlKey && e.key === 'l') {
+      e.preventDefault();
+      commands.clear();
+    } else if (e.key === 'Escape') {
+      input.blur();
+      return;
+    } else {
+      requestAnimationFrame(render);
+      wake();
+      return;
+    }
+    render();
+    wake();
+    line.scrollIntoView({ block: 'nearest' });
+  });
+  input.addEventListener('input', () => { render(); wake(); });
+  document.addEventListener('selectionchange', () => { if (document.activeElement === input) render(); });
+  input.addEventListener('focus', () => {
+    finish();
+    mode.textContent = '-- INSERT --';
+    mode.classList.add('insert');
+    render();
+  });
+  input.addEventListener('blur', () => {
+    mode.textContent = '-- NORMAL --';
+    mode.classList.remove('insert');
+  });
+
+  // ---- global keys --------------------------------------------------------
+  addEventListener('keydown', e => {
+    if (e.target === input) return;
+    if (e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
+    const a = keys.get(e.key);
+    if (a) { go(a); return; }
+    finish();                                    // any other key: finish the animation
+    if (e.key.length === 1 && e.key !== ' ') input.focus();   // the keystroke lands in the shell
+  });
+  addEventListener('pointerdown', finish);
+})();
+</script>
+</body>
+</html>
