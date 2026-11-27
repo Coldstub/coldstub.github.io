@@ -1,17 +1,22 @@
 <!doctype html>
 <html><head><meta charset="utf-8">
+<!-- source for og.png (1200×630): render this page at 1200×630 and screenshot it -->
 <style>
-  html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden; background: #050505; }
-  body { position: relative; color: #d6d6d6; font: 34px/1.6 "JetBrains Mono", "Cascadia Mono", Consolas, monospace; }
-  :lang(ja) { font-family: "Sarasa Mono J", "Maple Mono", "MS Gothic", "JetBrains Mono", Consolas, monospace; }
-  svg { position: absolute; top: 0; right: 0; width: 360px; height: 574px; color: rgba(232,144,122,0.10); }
+  @font-face { font-family: "IBM Plex Mono"; font-weight: 400; src: url("fonts/ibm-plex-mono-400.woff2") format("woff2"); }
+  html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden; background: #0d1511; }
+  body { position: relative; color: #c5d5cb; font: 34px/1.6 "IBM Plex Mono", "JetBrains Mono", Consolas, monospace; }
+  :lang(ja) { font-family: "Sarasa Mono J", "Maple Mono", "MS Gothic", "Noto Sans CJK JP", "IBM Plex Mono", monospace; }
+  svg { position: absolute; top: 0; right: 0; width: 360px; height: 574px; color: rgb(66 245 141 / 0.10); }
   .t { position: absolute; left: 96px; top: 96px; }
   .t p { margin: 0; }
-  .ps { color: #e8907a; } .path, .m { color: #777; }
-  .name { font-size: 50px; line-height: 1.4; margin: 8px 0 0 !important; }
-  .cur { display: inline-block; width: 0.6em; height: 1.1em; background: #d6d6d6; vertical-align: text-bottom; }
-  .bar { position: absolute; left: 0; right: 0; bottom: 0; height: 56px; display: flex; align-items: center; justify-content: space-between; padding: 0 96px; border-top: 1px solid rgba(255,255,255,0.08); color: #777; font-size: 24px; }
-  .l { color: #5b8dd9; }
+  .ps { color: #42f58d; text-shadow: 0 0 0.5em rgb(66 245 141 / 0.3); }
+  .path, .m { color: #829c8c; text-shadow: none; }
+  .cmd { color: #e0ebe4; }
+  .name { font-size: 50px; line-height: 1.4; margin: 8px 0 0 !important; color: #e0ebe4; }
+  .l { color: #7fe8d4; }
+  .cur { display: inline-block; width: 0.6em; height: 1.1em; background: #1eff5a; vertical-align: text-bottom; }
+  .bar { position: absolute; left: 0; right: 0; bottom: 0; height: 56px; display: flex; align-items: center; justify-content: space-between; padding: 0 96px; border-top: 1px solid #263c30; color: #829c8c; font-size: 24px; }
+  .bar .mode { color: #1eff5a; }
 </style></head>
 <body>
 <svg viewBox="0 0 480 800" preserveAspectRatio="xMinYMid slice"><g fill="none" stroke="currentColor" stroke-width="1.5">
@@ -19,12 +24,11 @@
   <circle cx="300" cy="200" r="200"/><circle cx="300" cy="200" r="130"/><circle cx="300" cy="200" r="65"/>
   <rect x="60" y="540" width="180" height="180"/><line x1="0" y1="430" x2="480" y2="430" stroke-dasharray="4 10"/></g></svg>
 <div class="t">
-  <p><span class="ps">coldstub@lab<span class="path">:~$</span></span> whoami</p>
-  <p class="name" lang="ja">冬野 律 / ふゆの りつ</p>
-  <p>Fuyuno Ritsu</p>
+  <p><span class="ps">coldstub@lab<span class="path">:~$</span></span> <span class="cmd">whoami</span></p>
+  <p class="name"><span lang="ja">ふゆの りつ</span> / Fuyuno Ritsu</p>
   <p class="m">reverse engineer · security researcher</p>
-  <p style="margin-top:28px"><span class="l">[github]</span> <span class="l">[telegram]</span> <span class="l">[soundcloud]</span> <span class="l">[contact]</span></p>
+  <p style="margin-top:28px" class="l">[github] [telegram] [soundcloud] [discord]</p>
   <p style="margin-top:20px"><span class="ps">coldstub@lab<span class="path">:~$</span></span> <span class="cur"></span></p>
 </div>
-<div class="bar"><span>-- NORMAL --</span><span>coldstub.github.io</span></div>
+<div class="bar"><span class="mode">-- NORMAL --</span><span>coldstub.github.io</span></div>
 </body></html>

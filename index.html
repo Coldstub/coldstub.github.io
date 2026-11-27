@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>coldstub</title>
-<meta name="description" content="coldstub / 冬野 律 (Fuyuno Ritsu) — reverse engineer, security researcher.">
-<meta name="theme-color" content="#050505">
+<meta name="description" content="coldstub / ふゆの りつ (Fuyuno Ritsu) — reverse engineer, security researcher.">
+<meta name="theme-color" content="#0d1511">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="coldstub">
 <meta property="og:title" content="coldstub">
@@ -14,9 +14,9 @@
 <meta property="og:image" content="https://coldstub.github.io/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="coldstub@lab:~$ whoami — 冬野 律 / Fuyuno Ritsu">
+<meta property="og:image:alt" content="coldstub@lab:~$ whoami — ふゆの りつ / Fuyuno Ritsu">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23050505'/%3E%3Crect x='3' y='11' width='7' height='2' fill='%23e8907a'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%230d1511'/%3E%3Crect x='3' y='11' width='7' height='2' fill='%231eff5a'/%3E%3C/svg%3E">
 <script>
   // Type the first command once per session, only when motion is allowed.
   // Failsafe: if the main script never runs, reveal everything after 1s.
@@ -29,21 +29,35 @@
     }, 1000);
   }
 </script>
+<link rel="preload" href="fonts/ibm-plex-mono-400.woff2" as="font" type="font/woff2" crossorigin>
 <style>
-  /* tokens — from Coldstub-Blog Style_Guide_v2 (black-terminal / salmon-blue) */
+  /* IBM Plex Mono, self-hosted latin subset (OFL, fonts/OFL.txt) */
+  @font-face {
+    font-family: "IBM Plex Mono";
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url("fonts/ibm-plex-mono-400.woff2") format("woff2");
+  }
+
+  /* tokens — Matrix Balanced: green is the accent identity, not a filter */
   :root {
     color-scheme: dark;
 
-    --bg: #050505;
-    --fg: #d6d6d6;
-    --muted: #777777;
-    --line: rgba(255, 255, 255, 0.08);   /* --border-subtle */
-    --accent: #e8907a;                   /* --accent-title: prompt */
-    --link: #5b8dd9;                     /* --accent-link: bracket links */
-    --link-active: #f0a08d;              /* --accent-soft */
-    --ghost-line: rgba(232, 144, 122, 0.06);
+    --bg:      #0d1511;
+    --prompt:  #42f58d;   /* coldstub@lab */
+    --command: #e0ebe4;   /* what the user types */
+    --output:  #c5d5cb;   /* ordinary output */
+    --link:    #7fe8d4;   /* interactive */
+    --muted:   #829c8c;   /* comments, descriptions */
+    --error:   #f08080;
+    --accent:  #1eff5a;   /* cursor, mode label */
+    --border:  #263c30;
+    --ghost-line: rgb(66 245 141 / 0.06);
 
-    --font: "JetBrains Mono", "IBM Plex Mono", "Fira Code", "Cascadia Code",
+    --glow: 0 0 0.5em rgb(66 245 141 / 0.3);
+
+    --font: "IBM Plex Mono", "JetBrains Mono", "Cascadia Code",
             "Sarasa Mono SC", "Maple Mono", ui-monospace, monospace;
     --pad-x: clamp(1.25rem, 4vw, 3.75rem);
     --pad-y: clamp(2rem, 5vw, 4rem);
@@ -52,7 +66,7 @@
 
   *, *::before, *::after { box-sizing: border-box; }
 
-  html, body { margin: 0; background: var(--bg); color: var(--fg); }
+  html, body { margin: 0; background: var(--bg); color: var(--output); }
 
   body {
     min-height: 100svh;
@@ -63,6 +77,8 @@
 
   /* keep kana/kanji monospace: stops Windows falling back to Yu Gothic */
   :lang(ja) { font-family: "Sarasa Mono J", "Maple Mono", var(--font); }
+
+  ::selection { background: var(--link); color: var(--bg); }
 
   /* background layer: GhostBg geometry from the blog, confined to the band
      right of the text column so no line ever crosses text */
@@ -85,10 +101,11 @@
   .term > *, .history > * { margin: 0; }
   .term > .out, .history > .out { margin-bottom: 1.2em; }
 
-  .ps { color: var(--accent); }
-  .ps .path { color: var(--muted); }
+  .ps { color: var(--prompt); text-shadow: var(--glow); }
+  .cmd, .echo, .prompt-line .line { color: var(--command); }
+  .ps .path { color: var(--muted); text-shadow: none; }
   .muted { color: var(--muted); }
-  .err { color: var(--link-active); }
+  .err { color: var(--error); }
 
   /* links: one per line, bracket text is the visual language */
   .links { list-style: none; padding: 0; }
@@ -99,10 +116,8 @@
   }
   .links .k, .links .desc { color: var(--muted); }
 
-  a { color: var(--link); text-decoration: none; }
-  a:visited { color: var(--link); }
-  a:hover { text-decoration: underline; text-underline-offset: 0.2em; }
-  a:active { color: var(--link-active); }
+  a, a:visited { color: var(--link); text-decoration: none; }
+  a:hover, a:active { background: var(--link); color: var(--bg); }   /* reverse video */
   a:focus-visible { outline: 1px dashed var(--link); outline-offset: 2px; }
 
   /* shell output */
@@ -111,7 +126,7 @@
     grid-template-columns: 16ch 1fr;
     column-gap: 1ch;
   }
-  .cols > :nth-child(odd) { color: var(--fg); }
+  .cols > :nth-child(odd) { color: var(--command); }
   .cols > :nth-child(even) { color: var(--muted); }
   .ls { display: flex; flex-wrap: wrap; column-gap: 2ch; }
   .echo { white-space: pre-wrap; word-break: break-all; }
@@ -147,14 +162,14 @@
   /* caret */
   .cursor,
   .typing::after {
-    background: var(--fg);
+    background: var(--accent);
     color: var(--bg);
     white-space: pre;
   }
   .typing::after { content: "\00a0"; }
   .cursor { animation: blink 1s steps(1) infinite; }
-  .prompt-line:focus-within .cursor { background: var(--accent); }
-  @keyframes blink { 50% { background: transparent; color: var(--fg); } }
+  .prompt-line:focus-within .cursor { box-shadow: var(--glow); }
+  @keyframes blink { 50% { background: transparent; color: var(--command); } }
   @media (prefers-reduced-motion: reduce) { .cursor { animation: none; } }
 
   /* progressive enhancement: hidden only while JS drives the reveal */
@@ -173,12 +188,12 @@
     gap: 2ch;
     padding: 0 var(--pad-x);
     background: var(--bg);
-    border-top: 1px solid var(--line);
+    border-top: 1px solid var(--border);
     color: var(--muted);
     font: 0.8em/1 var(--font);
     white-space: nowrap;
   }
-  .bar .mode.insert { color: var(--fg); }
+  .bar .mode { color: var(--accent); }
 
   @media (max-width: 767px) {
     .bar .mid { display: none; }
@@ -210,8 +225,7 @@
 <main class="term">
   <p class="step"><span class="ps">coldstub@lab<span class="path">:~$</span></span> <span class="cmd">whoami</span></p>
   <p class="out step" id="whoami">
-    <span lang="ja">冬野 律 / ふゆの りつ</span><br>
-    Fuyuno Ritsu<br>
+    <span lang="ja">ふゆの りつ</span> / Fuyuno Ritsu<br>
     <span class="muted">reverse engineer · security researcher</span>
   </p>
 
@@ -220,11 +234,12 @@
     <li class="step"><span class="k">1</span><a href="https://github.com/coldstub" data-key="1" rel="me noopener">[github]</a><span class="desc">code</span></li>
     <li class="step"><span class="k">2</span><a href="https://t.me/ripwned" data-key="2" rel="me noopener">[telegram]</a><span class="desc">channel · ripwned</span></li>
     <li class="step"><span class="k">3</span><a href="https://soundcloud.com/ripbny" data-key="3" rel="me noopener">[soundcloud]</a><span class="desc">ripbny</span></li>
-    <li class="step"><span class="k">4</span><a href="https://t.me/imwfso" data-key="4" rel="me noopener">[contact]</a><span class="desc">telegram · @imwfso</span></li>
+    <li class="step"><span class="k">4</span><a href="https://discord.com/users/1574971631200243784" data-key="4" rel="me noopener">[discord]</a><span class="desc">personal</span></li>
+    <li class="step"><span class="k">5</span><a href="https://t.me/imwfso" data-key="5" rel="me noopener">[contact]</a><span class="desc">telegram · @imwfso</span></li>
   </ul>
 
   <p class="out step muted">
-    <span class="hint-key"># press 1–4 to open · type help</span><span class="hint-touch"># tap a link</span>
+    <span class="hint-key"># press 1–5 to open · type help</span><span class="hint-touch"># tap a link</span>
   </p>
 
   <div class="history" id="history" aria-live="polite"></div>

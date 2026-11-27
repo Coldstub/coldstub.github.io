@@ -5,7 +5,8 @@ Single-file link page. No build step, no dependencies.
 ## Edit
 
 - links: `index.html` → `<ul class="links">`
-- colors / spacing: `index.html` → `:root` (mirrors Coldstub-Blog `Style_Guide_v2`)
+- colors / spacing: `index.html` → `:root` (Matrix Balanced: green = prompt / cursor only)
+- font: IBM Plex Mono, self-hosted latin subset `fonts/` (OFL); kana falls back via `:lang(ja)`
 - shell commands: `index.html` → `commands` in the script
 - OG image: edit `og.html`, then re-render `og.png`:
 
