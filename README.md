@@ -6,7 +6,11 @@ Single-file link page. No build step, no dependencies.
 
 - links: `index.html` → `<ul class="links">`
 - colors / spacing: `index.html` → `:root` (Matrix Balanced: green = prompt / cursor only)
-- font: IBM Plex Mono, self-hosted latin subset `fonts/` (OFL); kana falls back via `:lang(ja)`
+- font: IBM Plex Mono, self-hosted latin subset `fonts/` (OFL). Japanese (`:lang(ja)`) uses
+  IBM Plex Sans JP, subset to the name's kana ふゆのりつ only — if the Japanese text changes,
+  re-fetch the subset (Google Fonts css2 `&text=`) and update `unicode-range`.
+- background art: `art.webp` — any grayscale image on an opaque black background (no transparency).
+  Strength: `--art-opacity`. Only loaded at ≥1100px. Source: Coldstub-Blog `art.png`.
 - shell commands: `index.html` → `commands` in the script
 - OG image: edit `og.html`, then re-render `og.png`:
 

@@ -4,6 +4,7 @@
 
 - 2026-11-26 — tokens synced to blog Style_Guide_v2; real hrefs for github / telegram / soundcloud (old `n3koraana` was 404) + [contact]; OG image; GhostBg layer; shell input (`help` / `ls` / `open` / `whoami` / `clear`). Deployed to https://coldstub.github.io/. Then: dropped [blog] placeholder (shortcuts 1–4), kana name + `:lang(ja)` font, tagline "reverse engineer · security researcher", animation types only the first `whoami` (once per session; links visible ~0.4s), background geometry moved right of the text column (≥1100px only), OG image re-rendered. Resume: blog link.
 - 2026-11-27 — ported 0002-matrix-balanced.patch by hand (its base commit — pure-Matrix palette + `art.webp` — never landed here): Matrix Balanced tokens; IBM Plex Mono self-hosted; name = kana + romaji only; [discord] added as 4, [contact] → 5; background lines kept, recolored green (no `art.webp` yet); OG image re-rendered. Resume: blog link; art.webp if wanted.
+- 2026-11-27 — art.webp from Coldstub-Blog art.png (1000px grayscale, 44 KB), replaces the background lines (≥1100px, right of text, fades left/bottom); kana in IBM Plex Sans JP (2 KB subset); OG image re-rendered with art. Resume: blog link.
 
 ## Now (MVP)
 
@@ -17,7 +18,7 @@
 
 - [x] OG image (1200×630) for Telegram / Discord link previews — `og.png`, source `og.html`
 - [ ] custom domain (then update `og:url` / `og:image` in `index.html`)
-- [x] background layer: inline SVG geometry, opacity ~0.06 (borrow blog GhostBg)
+- [x] background layer: ~~inline SVG geometry~~ → character art `art.webp` (neutral grayscale)
 - [x] fake shell input: `help` / `ls` / `open <name>`
 - [ ] Discord presence via Lanyard (user ID 1574971631200243784; account must join the Lanyard server)
 - [ ] view counter via Cloudflare Workers + KV (only backend item)
