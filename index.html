@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>coldstub</title>
-<meta name="description" content="coldstub / 冬野 律 — reverse engineering, systems programming, CTF.">
+<meta name="description" content="coldstub / 冬野 律 (Fuyuno Ritsu) — reverse engineer, security researcher.">
 <meta name="theme-color" content="#050505">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="coldstub">
 <meta property="og:title" content="coldstub">
-<meta property="og:description" content="reverse engineering · systems programming · CTF">
+<meta property="og:description" content="reverse engineer · security researcher">
 <meta property="og:url" content="https://coldstub.github.io/">
 <meta property="og:image" content="https://coldstub.github.io/og.png">
 <meta property="og:image:width" content="1200">
@@ -18,13 +18,15 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23050505'/%3E%3Crect x='3' y='11' width='7' height='2' fill='%23e8907a'/%3E%3C/svg%3E">
 <script>
-  // Enable the typing animation only when motion is allowed.
-  // Failsafe: if the main script never runs, reveal everything after 4s.
-  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  // Type the first command once per session, only when motion is allowed.
+  // Failsafe: if the main script never runs, reveal everything after 1s.
+  var seen = false;
+  try { seen = sessionStorage.getItem('seen') === '1'; sessionStorage.setItem('seen', '1'); } catch (e) {}
+  if (!seen && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
     document.documentElement.classList.add('js');
     window.__failsafe = setTimeout(function () {
       document.documentElement.classList.remove('js');
-    }, 4000);
+    }, 1000);
   }
 </script>
 <style>
@@ -59,16 +61,25 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  /* background layer: GhostBg geometry from the blog */
+  /* keep kana/kanji monospace: stops Windows falling back to Yu Gothic */
+  :lang(ja) { font-family: "Sarasa Mono J", "Maple Mono", var(--font); }
+
+  /* background layer: GhostBg geometry from the blog, confined to the band
+     right of the text column so no line ever crosses text */
   .ghost-bg {
+    display: none;
     position: fixed;
-    inset: 0;
+    top: 0;
+    right: 0;
+    bottom: var(--bar-h);
+    left: calc(var(--pad-x) + 46rem + 3rem);
     z-index: 0;
     pointer-events: none;
     overflow: hidden;
     color: var(--ghost-line);
   }
   .ghost-bg svg { display: block; width: 100%; height: 100%; }
+  @media (min-width: 1100px) { .ghost-bg { display: block; } }
 
   .term { position: relative; z-index: 1; max-width: 46rem; }
   .term > *, .history > * { margin: 0; }
@@ -173,7 +184,6 @@
     .bar .mid { display: none; }
   }
   @media (max-width: 479px) {
-    .ghost-bg { display: none; }
     .bar .r { display: none; }
     .links li { grid-template-columns: 2ch 1fr; }
     .links .desc { display: none; }
@@ -184,16 +194,15 @@
 </head>
 <body>
 <div class="ghost-bg" aria-hidden="true">
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 800" preserveAspectRatio="xMinYMid slice">
     <g fill="none" stroke="currentColor" stroke-width="1">
-      <line x1="0" y1="0" x2="1200" y2="800"/>
-      <line x1="0" y1="160" x2="1200" y2="960"/>
-      <line x1="-200" y1="800" x2="1400" y2="0"/>
-      <circle cx="940" cy="180" r="240"/>
-      <circle cx="940" cy="180" r="160"/>
-      <circle cx="940" cy="180" r="80"/>
-      <rect x="80" y="540" width="220" height="220"/>
-      <line x1="0" y1="400" x2="1200" y2="400" stroke-dasharray="4 10"/>
+      <line x1="0" y1="800" x2="480" y2="160"/>
+      <line x1="80" y1="0" x2="480" y2="520"/>
+      <circle cx="300" cy="200" r="200"/>
+      <circle cx="300" cy="200" r="130"/>
+      <circle cx="300" cy="200" r="65"/>
+      <rect x="60" y="540" width="180" height="180"/>
+      <line x1="0" y1="430" x2="480" y2="430" stroke-dasharray="4 10"/>
     </g>
   </svg>
 </div>
@@ -201,22 +210,21 @@
 <main class="term">
   <p class="step"><span class="ps">coldstub@lab<span class="path">:~$</span></span> <span class="cmd">whoami</span></p>
   <p class="out step" id="whoami">
-    冬野 律 / Fuyuno Ritsu<br>
-    <span class="muted">reverse engineering · systems programming · CTF</span>
+    <span lang="ja">冬野 律 / ふゆの りつ</span><br>
+    Fuyuno Ritsu<br>
+    <span class="muted">reverse engineer · security researcher</span>
   </p>
 
   <p class="step"><span class="ps">coldstub@lab<span class="path">:~$</span></span> <span class="cmd">cat links.txt</span></p>
   <ul class="out links">
-    <!-- TODO: blog href — fill once the blog is deployed -->
-    <li class="step"><span class="k">1</span><a href="#todo-blog" data-key="1" rel="me noopener">[blog]</a><span class="desc">writeups, notes</span></li>
-    <li class="step"><span class="k">2</span><a href="https://github.com/coldstub" data-key="2" rel="me noopener">[github]</a><span class="desc">code</span></li>
-    <li class="step"><span class="k">3</span><a href="https://t.me/ripwned" data-key="3" rel="me noopener">[telegram]</a><span class="desc">channel · ripwned</span></li>
-    <li class="step"><span class="k">4</span><a href="https://soundcloud.com/ripbny" data-key="4" rel="me noopener">[soundcloud]</a><span class="desc">ripbny</span></li>
-    <li class="step"><span class="k">5</span><a href="https://t.me/imwfso" data-key="5" rel="me noopener">[contact]</a><span class="desc">telegram · @imwfso</span></li>
+    <li class="step"><span class="k">1</span><a href="https://github.com/coldstub" data-key="1" rel="me noopener">[github]</a><span class="desc">code</span></li>
+    <li class="step"><span class="k">2</span><a href="https://t.me/ripwned" data-key="2" rel="me noopener">[telegram]</a><span class="desc">channel · ripwned</span></li>
+    <li class="step"><span class="k">3</span><a href="https://soundcloud.com/ripbny" data-key="3" rel="me noopener">[soundcloud]</a><span class="desc">ripbny</span></li>
+    <li class="step"><span class="k">4</span><a href="https://t.me/imwfso" data-key="4" rel="me noopener">[contact]</a><span class="desc">telegram · @imwfso</span></li>
   </ul>
 
   <p class="out step muted">
-    <span class="hint-key"># press 1–5 to open · type help</span><span class="hint-touch"># tap a link</span>
+    <span class="hint-key"># press 1–4 to open · type help</span><span class="hint-touch"># tap a link</span>
   </p>
 
   <div class="history" id="history" aria-live="polite"></div>
@@ -245,42 +253,31 @@
   });
   const go = a => { location.href = a.href; };
 
-  // ---- reveal animation -------------------------------------------------
-  const steps = [...document.querySelectorAll('.step')];
-  const cmds = [...document.querySelectorAll('.cmd')];
-  cmds.forEach(c => { c.dataset.text = c.textContent; });
-  let done = !root.classList.contains('js');   // reduced motion: already visible
+  // ---- first-visit animation: type the first command, then show the rest at once
+  const first = $('.step .cmd');
+  const firstLine = first.closest('.step');
+  const firstText = first.textContent;
+  let done = !root.classList.contains('js');   // reduced motion / seen this session
 
   function finish() {
     if (done) return;
     done = true;
-    steps.forEach(el => { el.classList.add('on'); el.classList.remove('typing'); });
-    cmds.forEach(c => { c.textContent = c.dataset.text; });
+    first.textContent = firstText;
+    firstLine.classList.remove('typing');
+    root.classList.remove('js');               // everything else appears together
   }
 
   if (!done) {
     const sleep = ms => new Promise(r => setTimeout(r, ms));
     (async () => {
-      for (const el of steps) {
+      firstLine.classList.add('on', 'typing');
+      first.textContent = '';
+      for (const ch of firstText) {            // for..of = code points, CJK-safe
         if (done) return;
-        el.classList.add('on');
-        const cmd = el.querySelector('.cmd');
-        if (cmd) {
-          const text = cmd.dataset.text;
-          cmd.textContent = '';
-          el.classList.add('typing');
-          for (const ch of text) {             // for..of = code points, CJK-safe
-            if (done) return;
-            cmd.textContent += ch;
-            await sleep(45 + Math.random() * 45);
-          }
-          el.classList.remove('typing');
-          await sleep(240);
-        } else {
-          await sleep(90);
-        }
+        first.textContent += ch;
+        await sleep(55);
       }
-      done = true;
+      finish();
     })();
   }
 
@@ -360,7 +357,6 @@
       if (!arg) { out(el('span', 'err', 'usage: open <name|n>')); return; }
       const a = keys.get(arg) || names.get(arg.replace(/[\[\]]/g, '').toLowerCase());
       if (!a) { out(el('span', 'err', `open: ${arg}: no such link`), el('br'), el('span', 'muted', '# try ls')); return; }
-      if (a.getAttribute('href').startsWith('#')) { out(el('span', 'err', `open: ${arg}: not online yet`)); return; }
       out(el('span', 'muted', `opening ${a.href} …`));
       setTimeout(() => go(a), 150);
     },

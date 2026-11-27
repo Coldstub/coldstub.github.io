@@ -2,26 +2,28 @@
 <html><head><meta charset="utf-8">
 <style>
   html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden; background: #050505; }
-  body { position: relative; color: #d6d6d6; font: 34px/1.6 "JetBrains Mono", "Cascadia Mono", Consolas, "Microsoft YaHei", monospace; }
-  svg { position: absolute; inset: 0; width: 100%; height: 100%; color: rgba(232,144,122,0.10); }
-  .t { position: absolute; left: 96px; top: 120px; }
+  body { position: relative; color: #d6d6d6; font: 34px/1.6 "JetBrains Mono", "Cascadia Mono", Consolas, monospace; }
+  :lang(ja) { font-family: "Sarasa Mono J", "Maple Mono", "MS Gothic", "JetBrains Mono", Consolas, monospace; }
+  svg { position: absolute; top: 0; right: 0; width: 360px; height: 574px; color: rgba(232,144,122,0.10); }
+  .t { position: absolute; left: 96px; top: 96px; }
   .t p { margin: 0; }
   .ps { color: #e8907a; } .path, .m { color: #777; }
-  .name { font-size: 56px; line-height: 1.4; margin: 8px 0 4px !important; }
+  .name { font-size: 50px; line-height: 1.4; margin: 8px 0 0 !important; }
   .cur { display: inline-block; width: 0.6em; height: 1.1em; background: #d6d6d6; vertical-align: text-bottom; }
   .bar { position: absolute; left: 0; right: 0; bottom: 0; height: 56px; display: flex; align-items: center; justify-content: space-between; padding: 0 96px; border-top: 1px solid rgba(255,255,255,0.08); color: #777; font-size: 24px; }
   .l { color: #5b8dd9; }
 </style></head>
 <body>
-<svg viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice"><g fill="none" stroke="currentColor" stroke-width="1.5">
-  <line x1="0" y1="0" x2="1200" y2="800"/><line x1="0" y1="160" x2="1200" y2="960"/><line x1="-200" y1="800" x2="1400" y2="0"/>
-  <circle cx="940" cy="180" r="240"/><circle cx="940" cy="180" r="160"/><circle cx="940" cy="180" r="80"/>
-  <rect x="80" y="540" width="220" height="220"/><line x1="0" y1="400" x2="1200" y2="400" stroke-dasharray="4 10"/></g></svg>
+<svg viewBox="0 0 480 800" preserveAspectRatio="xMinYMid slice"><g fill="none" stroke="currentColor" stroke-width="1.5">
+  <line x1="0" y1="800" x2="480" y2="160"/><line x1="80" y1="0" x2="480" y2="520"/>
+  <circle cx="300" cy="200" r="200"/><circle cx="300" cy="200" r="130"/><circle cx="300" cy="200" r="65"/>
+  <rect x="60" y="540" width="180" height="180"/><line x1="0" y1="430" x2="480" y2="430" stroke-dasharray="4 10"/></g></svg>
 <div class="t">
   <p><span class="ps">coldstub@lab<span class="path">:~$</span></span> whoami</p>
-  <p class="name">冬野 律 / Fuyuno Ritsu</p>
-  <p class="m">reverse engineering · systems programming · CTF</p>
-  <p style="margin-top:28px"><span class="l">[blog]</span> <span class="l">[github]</span> <span class="l">[telegram]</span> <span class="l">[soundcloud]</span></p>
+  <p class="name" lang="ja">冬野 律 / ふゆの りつ</p>
+  <p>Fuyuno Ritsu</p>
+  <p class="m">reverse engineer · security researcher</p>
+  <p style="margin-top:28px"><span class="l">[github]</span> <span class="l">[telegram]</span> <span class="l">[soundcloud]</span> <span class="l">[contact]</span></p>
   <p style="margin-top:20px"><span class="ps">coldstub@lab<span class="path">:~$</span></span> <span class="cur"></span></p>
 </div>
 <div class="bar"><span>-- NORMAL --</span><span>coldstub.github.io</span></div>
